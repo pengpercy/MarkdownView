@@ -20,8 +20,10 @@ import Litext
             guard textLabelView.bounds.width > 0 else { return }
 
             var placed: Set<PlatformView> = []
+            var runCount = 0
 
             for run in textLabelView.layoutRuns(matching: .contextView) {
+                runCount += 1
                 if let codeView = run.attributes[.contextView] as? CodeView {
                     syncCodeView(codeView, with: run)
                     placed.insert(codeView)
@@ -36,9 +38,14 @@ import Litext
 
             // A view whose line did not survive this layout pass has no known
             // position, and its previous frame belongs to a layout that no longer
-            // exists. Hide it rather than let it paint over the text.
-            for view in contextViews {
-                view.isHidden = !placed.contains(view)
+            // exists. Hide it rather than let it paint over the text — but only
+            // once this pass actually saw runs. A rebuild caught before the text
+            // layout produced any would otherwise hide every block and blank it
+            // until a later, unrelated layout pass puts it back.
+            if runCount > 0 || contextViews.isEmpty {
+                for view in contextViews {
+                    view.isHidden = !placed.contains(view)
+                }
             }
 
             syncBlockquoteBars()
@@ -137,8 +144,10 @@ import Litext
             guard textLabelView.bounds.width > 0 else { return }
 
             var placed: Set<PlatformView> = []
+            var runCount = 0
 
             for run in textLabelView.layoutRuns(matching: .contextView) {
+                runCount += 1
                 if let codeView = run.attributes[.contextView] as? CodeView {
                     syncCodeView(codeView, with: run)
                     placed.insert(codeView)
@@ -153,9 +162,14 @@ import Litext
 
             // A view whose line did not survive this layout pass has no known
             // position, and its previous frame belongs to a layout that no longer
-            // exists. Hide it rather than let it paint over the text.
-            for view in contextViews {
-                view.isHidden = !placed.contains(view)
+            // exists. Hide it rather than let it paint over the text — but only
+            // once this pass actually saw runs. A rebuild caught before the text
+            // layout produced any would otherwise hide every block and blank it
+            // until a later, unrelated layout pass puts it back.
+            if runCount > 0 || contextViews.isEmpty {
+                for view in contextViews {
+                    view.isHidden = !placed.contains(view)
+                }
             }
 
             syncBlockquoteBars()
