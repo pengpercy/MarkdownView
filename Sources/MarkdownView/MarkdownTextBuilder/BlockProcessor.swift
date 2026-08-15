@@ -21,19 +21,22 @@ final class BlockProcessor {
     private let context: MarkdownContent
     private let thematicBreakDrawing: TextBuilder.DrawingCallback?
     private let inlineTextDecoration: TextBuilder.InlineTextDecoration?
+    private let codeBlocksExpanded: Bool
 
     init(
         theme: MarkdownTheme,
         viewProvider: ReusableViewProvider,
         context: MarkdownContent,
         thematicBreakDrawing: TextBuilder.DrawingCallback?,
-        inlineTextDecoration: TextBuilder.InlineTextDecoration?
+        inlineTextDecoration: TextBuilder.InlineTextDecoration?,
+        codeBlocksExpanded: Bool = false
     ) {
         self.theme = theme
         self.viewProvider = viewProvider
         self.context = context
         self.thematicBreakDrawing = thematicBreakDrawing
         self.inlineTextDecoration = inlineTextDecoration
+        self.codeBlocksExpanded = codeBlocksExpanded
     }
 
     func processHeading(level _: Int, contents: [MarkdownInlineNode]) -> NSAttributedString {
@@ -88,6 +91,14 @@ final class BlockProcessor {
         codeView.theme = theme
         codeView.language = language ?? ""
         codeView.setContent(content, highlightMap: highlightMap)
+        #if canImport(UIKit)
+            // The height reserved below must match the expansion state this
+            // build is measured against. A pooled view otherwise carries the
+            // state of its previous occupant into the reservation — a stale
+            // expanded view flashes tall for one build, a stale collapsed one
+            // measures short while the host expects the full height.
+            codeView.isExpanded = codeBlocksExpanded && codeView.isCollapsible
+        #endif
         let text = buildWithParagraphSync { paragraph in
             // Reserve exactly what the view will occupy. Estimating the height from
             // the source text instead lets the two numbers drift apart, and the view

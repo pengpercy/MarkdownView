@@ -71,6 +71,17 @@ final class TextBuilder {
         return self
     }
 
+    /// Whether collapsible code blocks reserve their full height in this build.
+    ///
+    /// The height a fenced block reserves is baked into the document when the
+    /// block is processed, so the flag has to be known at build time — reading
+    /// it off a code view later only sees whatever state that view happened to
+    /// carry, which a pooled view inherited from its previous occupant.
+    func withCodeBlocksExpanded(_ expanded: Bool) -> TextBuilder {
+        codeBlocksExpanded = expanded
+        return self
+    }
+
     struct BuildResult {
         let document: NSAttributedString
         let subviews: [PlatformView]
@@ -84,6 +95,7 @@ final class TextBuilder {
     private var pendingHighlightRequests: [CodeHighlightRequest] = []
     private var highlightKeys: Set<Int> = []
     private var fragmentCache: BlockFragmentCache = .init()
+    private var codeBlocksExpanded = false
 
     private var previouslyBuilt = false
     func build() -> BuildResult {
@@ -168,6 +180,7 @@ extension TextBuilder {
             context: context,
             thematicBreakDrawing: thematicBreakDrawing,
             inlineTextDecoration: inlineTextDecoration,
+            codeBlocksExpanded: codeBlocksExpanded,
         )
 
         let listProcessor = ListProcessor(

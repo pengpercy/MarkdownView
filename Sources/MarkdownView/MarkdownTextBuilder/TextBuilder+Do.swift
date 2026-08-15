@@ -89,8 +89,15 @@ extension TextBuilder {
             context.fill(targetRect)
         }
 
+        #if canImport(UIKit)
+            let codeBlocksExpanded = view.codeBlocksAreExpanded
+        #else
+            let codeBlocksExpanded = false
+        #endif
+
         return TextBuilder(nodes: context.blocks, context: context, viewProvider: viewProvider)
             .withTheme(theme)
+            .withCodeBlocksExpanded(codeBlocksExpanded)
             .withFragmentCache(view.blockFragmentCache)
             .withInlineTextDecoration { [weak view] text in
                 guard let view else { return text }

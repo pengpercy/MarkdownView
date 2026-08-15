@@ -13,6 +13,12 @@ import Litext
 
     extension MarkdownTextView {
         func syncContextViewLayout() {
+            // A container with no width lays out no runs, and hiding every
+            // context view against that empty layout blanks them until a later
+            // pass happens to re-place them. Keep whatever a previous pass
+            // placed until the container has a size again.
+            guard textLabelView.bounds.width > 0 else { return }
+
             var placed: Set<PlatformView> = []
 
             for run in textLabelView.layoutRuns(matching: .contextView) {
@@ -68,7 +74,7 @@ import Litext
             }
             codeView.textView.delegate = self
             codeView.previewAction = codePreviewHandler
-            codeView.isExpanded = codeBlocksAreExpanded
+            codeView.isExpanded = codeBlocksAreExpanded && codeView.isCollapsible
             codeView.preferredHeightDidChange = { [weak self, weak codeView] in
                 guard let self, let codeView, codeView.superview === self else { return }
                 let isExpanded = codeView.isExpanded
@@ -124,6 +130,12 @@ import Litext
 
     extension MarkdownTextView {
         func syncContextViewLayout() {
+            // A container with no width lays out no runs, and hiding every
+            // context view against that empty layout blanks them until a later
+            // pass happens to re-place them. Keep whatever a previous pass
+            // placed until the container has a size again.
+            guard textLabelView.bounds.width > 0 else { return }
+
             var placed: Set<PlatformView> = []
 
             for run in textLabelView.layoutRuns(matching: .contextView) {
