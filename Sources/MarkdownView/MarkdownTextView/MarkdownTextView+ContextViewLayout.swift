@@ -71,8 +71,12 @@ import Litext
             codeView.isExpanded = codeBlocksAreExpanded
             codeView.preferredHeightDidChange = { [weak self, weak codeView] in
                 guard let self, let codeView, codeView.superview === self else { return }
-                self.codeBlocksAreExpanded = codeView.isExpanded
-                self.codeBlockExpansionDidChange?(codeView.isExpanded)
+                let isExpanded = codeView.isExpanded
+                DispatchQueue.main.async { [weak self, weak codeView] in
+                    guard let self, let codeView, codeView.superview === self else { return }
+                    self.codeBlocksAreExpanded = isExpanded
+                    self.codeBlockExpansionDidChange?(isExpanded)
+                }
             }
             setFrameIfNeeded(
                 for: codeView,
