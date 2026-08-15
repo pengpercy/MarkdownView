@@ -68,9 +68,11 @@ import Litext
             }
             codeView.textView.delegate = self
             codeView.previewAction = codePreviewHandler
+            codeView.isExpanded = codeBlocksAreExpanded
             codeView.preferredHeightDidChange = { [weak self, weak codeView] in
                 guard let self, let codeView, codeView.superview === self else { return }
-                self.use(self.content)
+                self.codeBlocksAreExpanded = codeView.isExpanded
+                self.codeBlockExpansionDidChange?(codeView.isExpanded)
             }
             setFrameIfNeeded(
                 for: codeView,
