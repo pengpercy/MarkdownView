@@ -68,6 +68,10 @@ import Litext
             }
             codeView.textView.delegate = self
             codeView.previewAction = codePreviewHandler
+            codeView.preferredHeightDidChange = { [weak self, weak codeView] in
+                guard let self, let codeView, codeView.superview === self else { return }
+                self.use(self.content)
+            }
             setFrameIfNeeded(
                 for: codeView,
                 to: contextViewFrame(for: run, height: codeView.intrinsicContentSize.height)
