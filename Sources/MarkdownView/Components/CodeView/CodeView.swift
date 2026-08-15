@@ -48,8 +48,6 @@ import Litext
                 lineNumberView.updateForContent(content)
                 updateLineNumberView()
                 updateExpandButton()
-                invalidateIntrinsicContentSize()
-                setNeedsLayout()
             }
         }
 
@@ -128,7 +126,7 @@ import Litext
         }
 
         func interactionTarget(at point: CGPoint, event: UIEvent? = nil) -> UIView? {
-            for button in [previewButton, copyButton] where !button.isHidden {
+            for button in [expandButton, previewButton, copyButton] where !button.isHidden {
                 let buttonPoint = button.convert(point, from: self)
                 guard button.bounds.contains(buttonPoint) else { continue }
                 return button.hitTest(buttonPoint, with: event) ?? button
