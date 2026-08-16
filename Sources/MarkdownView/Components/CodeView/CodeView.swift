@@ -61,6 +61,11 @@ import Litext
         private var highlightedContent: String = ""
         var isExpanded = false
 
+        /// The block's index in document order; the expansion state lives
+        /// per index on the host view, so a rebuild always knows which
+        /// block this one is.
+        var codeBlockIndex: Int = 0
+
         var preferredHeightDidChange: (() -> Void)?
 
         var isCollapsible: Bool {

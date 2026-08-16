@@ -21,22 +21,19 @@ final class BlockProcessor {
     private let context: MarkdownContent
     private let thematicBreakDrawing: TextBuilder.DrawingCallback?
     private let inlineTextDecoration: TextBuilder.InlineTextDecoration?
-    private let codeBlocksExpanded: Bool
 
     init(
         theme: MarkdownTheme,
         viewProvider: ReusableViewProvider,
         context: MarkdownContent,
         thematicBreakDrawing: TextBuilder.DrawingCallback?,
-        inlineTextDecoration: TextBuilder.InlineTextDecoration?,
-        codeBlocksExpanded: Bool = false
+        inlineTextDecoration: TextBuilder.InlineTextDecoration?
     ) {
         self.theme = theme
         self.viewProvider = viewProvider
         self.context = context
         self.thematicBreakDrawing = thematicBreakDrawing
         self.inlineTextDecoration = inlineTextDecoration
-        self.codeBlocksExpanded = codeBlocksExpanded
     }
 
     func processHeading(level _: Int, contents: [MarkdownInlineNode]) -> NSAttributedString {
@@ -84,7 +81,9 @@ final class BlockProcessor {
     func processCodeBlock(
         language: String?,
         content: String,
-        highlightMap: CodeHighlighter.HighlightMap?
+        highlightMap: CodeHighlighter.HighlightMap?,
+        codeBlockIndex: Int = 0,
+        isExpanded: Bool = false
     ) -> (NSAttributedString, CodeView) {
         let content = content.deletingSuffix(of: .whitespacesAndNewlines)
         let codeView = viewProvider.acquireCodeView()
@@ -97,7 +96,8 @@ final class BlockProcessor {
             // state of its previous occupant into the reservation — a stale
             // expanded view flashes tall for one build, a stale collapsed one
             // measures short while the host expects the full height.
-            codeView.isExpanded = codeBlocksExpanded && codeView.isCollapsible
+            codeView.codeBlockIndex = codeBlockIndex
+            codeView.isExpanded = isExpanded && codeView.isCollapsible
         #endif
         let text = buildWithParagraphSync { paragraph in
             // Reserve exactly what the view will occupy. Estimating the height from

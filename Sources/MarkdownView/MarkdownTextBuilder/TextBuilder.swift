@@ -77,8 +77,8 @@ final class TextBuilder {
     /// block is processed, so the flag has to be known at build time — reading
     /// it off a code view later only sees whatever state that view happened to
     /// carry, which a pooled view inherited from its previous occupant.
-    func withCodeBlocksExpanded(_ expanded: Bool) -> TextBuilder {
-        codeBlocksExpanded = expanded
+    func withExpandedCodeBlocks(_ expanded: Set<Int>) -> TextBuilder {
+        expandedCodeBlocks = expanded
         return self
     }
 
@@ -95,7 +95,8 @@ final class TextBuilder {
     private var pendingHighlightRequests: [CodeHighlightRequest] = []
     private var highlightKeys: Set<Int> = []
     private var fragmentCache: BlockFragmentCache = .init()
-    private var codeBlocksExpanded = false
+    private var expandedCodeBlocks: Set<Int> = []
+    private var nextCodeBlockIndex = 0
 
     private var previouslyBuilt = false
     func build() -> BuildResult {
@@ -180,7 +181,6 @@ extension TextBuilder {
             context: context,
             thematicBreakDrawing: thematicBreakDrawing,
             inlineTextDecoration: inlineTextDecoration,
-            codeBlocksExpanded: codeBlocksExpanded,
         )
 
         let listProcessor = ListProcessor(
@@ -207,6 +207,8 @@ extension TextBuilder {
         case .thematicBreak:
             return blockProcessor.processThematicBreak()
         case let .codeBlock(language, content):
+            let blockIndex = nextCodeBlockIndex
+            nextCodeBlockIndex += 1
             let highlightKey = CodeHighlighter.current.key(for: content, language: language)
             highlightKeys.insert(highlightKey)
             var highlightMap = context.highlightMaps[highlightKey]
@@ -219,7 +221,9 @@ extension TextBuilder {
             let result = blockProcessor.processCodeBlock(
                 language: language,
                 content: content,
-                highlightMap: highlightMap
+                highlightMap: highlightMap,
+                codeBlockIndex: blockIndex,
+                isExpanded: expandedCodeBlocks.contains(blockIndex),
             )
             subviews.append(result.1)
             return result.0

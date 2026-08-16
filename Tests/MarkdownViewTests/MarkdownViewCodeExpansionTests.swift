@@ -16,7 +16,7 @@ import Testing
     }
 
     struct MarkdownViewCodeExpansionTests {
-        /// The height a view measures must follow `codeBlocksAreExpanded` on
+        /// The height a view measures must follow `expandedCodeBlocks` on
         /// the very first build — hosts measure rows through views that never
         /// ran a layout pass, so the reservation cannot depend on state a
         /// previous layout synced into the code view.
@@ -24,12 +24,12 @@ import Testing
         @Test("First measurement honours the expansion flag")
         func firstMeasurementHonoursExpansionFlag() {
             let collapsedView = MarkdownTextView()
-            collapsedView.codeBlocksAreExpanded = false
+            collapsedView.expandedCodeBlocks = []
             collapsedView.setContentImmediately(longCodeDocument(), theme: .default)
             let collapsedHeight = collapsedView.boundingSize(for: 320).height
 
             let expandedView = MarkdownTextView()
-            expandedView.codeBlocksAreExpanded = true
+            expandedView.expandedCodeBlocks = [0]
             expandedView.setContentImmediately(longCodeDocument(), theme: .default)
             let expandedHeight = expandedView.boundingSize(for: 320).height
 
@@ -43,17 +43,17 @@ import Testing
         func expansionTogglesReMeasureDeterministically() {
             let view = MarkdownTextView()
             view.setContentImmediately(longCodeDocument(), theme: .default)
-            view.codeBlocksAreExpanded = false
+            view.expandedCodeBlocks = []
             let collapsedHeight = view.boundingSize(for: 320).height
 
-            view.codeBlocksAreExpanded = true
+            view.expandedCodeBlocks = [0]
             let expandedHeight = view.boundingSize(for: 320).height
             #expect(expandedHeight > collapsedHeight + 100)
 
-            view.codeBlocksAreExpanded = false
+            view.expandedCodeBlocks = []
             #expect(view.boundingSize(for: 320).height == collapsedHeight)
 
-            view.codeBlocksAreExpanded = true
+            view.expandedCodeBlocks = [0]
             #expect(view.boundingSize(for: 320).height == expandedHeight)
         }
 
@@ -65,18 +65,18 @@ import Testing
         func staleExpandedCodeViewDoesNotFlash() {
             let view = MarkdownTextView()
             view.setContentImmediately(longCodeDocument(), theme: .default)
-            view.codeBlocksAreExpanded = true
+            view.expandedCodeBlocks = [0]
             let expandedHeight = view.boundingSize(for: 320).height
             #expect(expandedHeight > 0)
 
             // Same view, new document, host back to collapsed — the sizing
             // pool's exact shape when a row is recycled between messages.
-            view.codeBlocksAreExpanded = false
+            view.expandedCodeBlocks = []
             view.setContentImmediately(longCodeDocument(lines: 40), theme: .default)
             let rebuiltHeight = view.boundingSize(for: 320).height
 
             let reference = MarkdownTextView()
-            reference.codeBlocksAreExpanded = false
+            reference.expandedCodeBlocks = []
             reference.setContentImmediately(longCodeDocument(lines: 40), theme: .default)
             let referenceHeight = reference.boundingSize(for: 320).height
 
@@ -96,7 +96,7 @@ import Testing
 
             // Collapse the container, rebuild, then give it its size back.
             view.frame.size.width = 0
-            view.codeBlocksAreExpanded = true
+            view.expandedCodeBlocks = [0]
             view.frame.size.width = 320
             view.layoutIfNeeded()
 
@@ -106,6 +106,48 @@ import Testing
                 #expect(!codeView.isHidden)
                 #expect(codeView.isExpanded)
             }
+        }
+
+        /// Expanding one block must not change the reservation of its
+        /// siblings — the reader keeps their place only if nothing above
+        /// them reflows.
+        @MainActor
+        @Test("Expansion is tracked per code block")
+        func expansionIsTrackedPerCodeBlock() {
+            let blockA = (1 ... 30).map { "let a\($0) = \($0)" }.joined(separator: "\n")
+            let blockB = (1 ... 30).map { "let b\($0) = \($0)" }.joined(separator: "\n")
+            let markdown = """
+            Intro.
+
+            ```swift
+            \(blockA)
+            ```
+
+            Between.
+
+            ```swift
+            \(blockB)
+            ```
+            """
+            let content = MarkdownContent(markdown: markdown, theme: .default)
+
+            let view = MarkdownTextView()
+            view.expandedCodeBlocks = []
+            view.setContentImmediately(content, theme: .default)
+            let allCollapsed = view.boundingSize(for: 320).height
+
+            view.expandedCodeBlocks = [1]
+            let secondExpanded = view.boundingSize(for: 320).height
+            #expect(secondExpanded > allCollapsed + 100)
+
+            view.expandedCodeBlocks = [0]
+            let firstExpanded = view.boundingSize(for: 320).height
+            // Symmetric: either single block expanded grows by the same amount.
+            #expect(firstExpanded == secondExpanded)
+
+            view.expandedCodeBlocks = [0, 1]
+            let bothExpanded = view.boundingSize(for: 320).height
+            #expect(bothExpanded > secondExpanded + 100)
         }
     }
 #endif
