@@ -24,7 +24,7 @@ let package = Package(
         .package(url: "https://github.com/mgriebling/SwiftMath", from: "1.7.3"),
         .package(url: "https://github.com/apple/swift-collections", from: "1.6.0"),
         .package(url: "https://github.com/raspu/Highlightr", from: "2.3.0"),
-        .package(url: "https://github.com/swiftlang/swift-cmark", from: "0.8.0"),
+        .package(url: "https://github.com/pengpercy/swift-cmark", exact: "0.8.0-flowdown.2"),
         .package(url: "https://github.com/nicklockwood/LRUCache", from: "1.2.1"),
     ],
     targets: [
