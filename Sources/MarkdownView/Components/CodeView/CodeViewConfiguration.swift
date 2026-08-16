@@ -24,11 +24,11 @@ enum CodeViewConfiguration {
         theme: MarkdownTheme = .default
     ) -> CGFloat {
         let numberOfRows = content.components(separatedBy: .newlines).count
-        return intrinsicHeight(lineCount: numberOfRows, theme: theme)
+        return intrinsicHeight(lineCount: CGFloat(numberOfRows), theme: theme)
     }
 
     static func intrinsicHeight(
-        lineCount: Int,
+        lineCount: CGFloat,
         theme: MarkdownTheme = .default
     ) -> CGFloat {
         let font = theme.fonts.code
@@ -38,9 +38,9 @@ enum CodeViewConfiguration {
             let lineHeight = font.ascender + abs(font.descender) + font.leading
         #endif
         let barHeight = lineHeight + barPadding * 2
-        let codeHeight = lineHeight * CGFloat(lineCount)
+        let codeHeight = lineHeight * lineCount
             + codePadding * 2
-            + codeLineSpacing * CGFloat(max(lineCount - 1, 0))
+            + codeLineSpacing * max(lineCount - 1, 0)
         return ceil(barHeight + codeHeight)
     }
 }

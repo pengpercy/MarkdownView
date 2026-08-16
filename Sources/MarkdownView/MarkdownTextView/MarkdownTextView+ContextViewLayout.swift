@@ -82,6 +82,12 @@ import Litext
             codeView.textView.delegate = self
             codeView.previewAction = codePreviewHandler
             codeView.isExpanded = codeBlocksAreExpanded && codeView.isCollapsible
+            // Content and state change on rebuilds that keep this view's
+            // frame — a stream growing past the preview height never moves
+            // the frame again. Scroll geometry and the bar buttons are only
+            // recomputed in the view's own layout, so ask for one on every
+            // sync rather than let them go stale.
+            codeView.setNeedsLayout()
             codeView.preferredHeightDidChange = { [weak self, weak codeView] in
                 guard let self, let codeView, codeView.superview === self else { return }
                 let isExpanded = codeView.isExpanded

@@ -52,6 +52,10 @@ import Litext
         }
 
         private static let collapsedLineLimit = 15
+        /// The collapsed preview shows half a line past the limit: a cleanly
+        /// cut block reads as complete, while a clipped line tells the reader
+        /// there is more and the preview scrolls.
+        private static let collapsedPreviewLines: CGFloat = 15.5
 
         private var cachedLineCount: Int = 1
         private var highlightedContent: String = ""
@@ -63,8 +67,8 @@ import Litext
             cachedLineCount > Self.collapsedLineLimit
         }
 
-        private var displayedLineCount: Int {
-            isExpanded || !isCollapsible ? cachedLineCount : Self.collapsedLineLimit
+        private var displayedLineCount: CGFloat {
+            isExpanded || !isCollapsible ? CGFloat(cachedLineCount) : Self.collapsedPreviewLines
         }
 
         /// Applies content and its highlight map together. Pass `nil` while the
@@ -411,7 +415,7 @@ import Litext
             let labelSize = languageLabel.intrinsicContentSize
             let barHeight = labelSize.height + CodeViewConfiguration.barPadding * 2
             let textSize = textView.intrinsicContentSize
-            let supposedHeight = CodeViewConfiguration.intrinsicHeight(lineCount: cachedLineCount, theme: theme)
+            let supposedHeight = CodeViewConfiguration.intrinsicHeight(lineCount: CGFloat(cachedLineCount), theme: theme)
 
             let lineNumberWidth = lineNumberView.intrinsicContentSize.width
 
