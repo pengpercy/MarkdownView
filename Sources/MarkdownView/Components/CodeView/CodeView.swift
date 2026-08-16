@@ -136,15 +136,6 @@ import Litext
                 return button.hitTest(buttonPoint, with: event) ?? button
             }
 
-            let scrollPoint = scrollView.convert(point, from: self)
-            // A collapsed preview scrolls vertically: hand the touch to the
-            // scroll view itself so its pan drives it. Routing the touch to
-            // the text label instead leaves the outer list owning the drag
-            // and the preview unable to move.
-            if scrollView.bounds.contains(scrollPoint), isCollapsible, !isExpanded {
-                return scrollView
-            }
-
             let textPoint = textView.convert(point, from: self)
             if textView.bounds.contains(textPoint),
                let target = textView.hitTest(textPoint, with: event)
