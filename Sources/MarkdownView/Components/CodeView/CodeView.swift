@@ -143,6 +143,7 @@ import Litext
                 return target
             }
 
+            let scrollPoint = scrollView.convert(point, from: self)
             if scrollView.bounds.contains(scrollPoint),
                scrollView.contentSize.width > scrollView.bounds.width + 1
                     || scrollView.contentSize.height > scrollView.bounds.height + 1
